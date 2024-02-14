@@ -1,12 +1,12 @@
 #[derive(Clone)]
 pub struct Combo {
     combo: (String, String),
-    result: String
+    result: String,
 }
 
 impl Combo {
     pub fn new(combo: (String, String), result: String) -> Self {
-        Self {combo, result}
+        Self { combo, result }
     }
 
     pub fn matches(&self, combo: &(String, String)) -> bool {
@@ -17,4 +17,3 @@ impl Combo {
         &self.result
     }
 }
-
