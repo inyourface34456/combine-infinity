@@ -1,5 +1,5 @@
 use crate::get_unix_epoch;
-use crate::Combo;
+use crate::{Combo, VOTE_EXPIRE};
 use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Eq)]
@@ -14,7 +14,7 @@ impl Proposal {
         Self {
             combo,
             result: HashMap::new(),
-            expire: get_unix_epoch() + 3600,
+            expire: get_unix_epoch() + VOTE_EXPIRE,
         }
     }
 
@@ -36,5 +36,14 @@ impl Proposal {
         } else {
             None
         }
+    }
+
+    pub fn vote_for(&mut self, prop: &String) {
+        match self.result.get_mut(prop) {
+            Some(dat) => *dat += 1,
+            None => {
+                self.result.insert(prop.clone(), 1);
+            }
+        };
     }
 }

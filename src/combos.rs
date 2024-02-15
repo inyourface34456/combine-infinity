@@ -3,20 +3,21 @@ use std::sync::{Arc, RwLock};
 
 #[derive(Clone)]
 pub struct Combos {
-    elements: Outer<Vec<String>>,
     combos: Outer<Vec<Combo>>,
     props: Outer<Vec<Proposal>>,
 }
 
 impl Combos {
     pub fn new() -> Self {
+        // let mut map = HashMap::new();
+
+        // map.insert(("".into(), "".into()), "fire".into());
+        // map.insert(("".into(), "".into()), "earth".into());
+        // map.insert(("".into(), "".into()), "water".into());
+        // map.insert(("".into(), "".into()), "air".into());
+
         Self {
-            elements: Arc::new(RwLock::new(vec![
-                "earth".into(),
-                "air".into(),
-                "fire".into(),
-                "water".into(),
-            ])),
+            //elements: Arc::new(RwLock::new(map)),
             combos: Arc::new(RwLock::new(vec![])),
             props: Arc::new(RwLock::new(vec![])),
         }
@@ -30,7 +31,7 @@ impl Combos {
                 }
             }
 
-            Err(Errors::ProposalExsits)
+            Err(Errors::VotingInProgress)
         } else {
             Err(Errors::InternelServerError)
         }
@@ -55,9 +56,20 @@ impl Combos {
         }
     }
 
-    // pub fn new_prop(&self, combo: (String, String)) {
-    //     if let Ok(mut props) = self.props.write() {
-    //         for i in props.
-    //     }
-    // }
+    pub fn vote(&self, combo: (String, String), result: String) -> String {
+        if let Ok(mut props) = self.props.write() {
+            for mut i in props.clone().into_iter() {
+                if i.matches(&combo) {
+                    i.vote_for(&result);
+                    return result
+                }
+            }
+            let mut prop = Proposal::new(combo);
+            prop.vote_for(&result);
+            props.push(prop);
+            result
+        } else {
+            "".into()
+        }
+    }
 }
