@@ -61,7 +61,7 @@ impl Combos {
             for mut i in props.clone().into_iter() {
                 if i.matches(&combo) {
                     i.vote_for(&result);
-                    return result
+                    return result;
                 }
             }
             let mut prop = Proposal::new(combo);

@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use std::sync::{Arc, RwLock};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub const VOTE_EXPIRE: u64 = 600;
+pub const VOTE_EXPIRE: u64 = 30;
 pub type Outer<T> = Arc<RwLock<T>>;
 
 #[derive(Debug)]

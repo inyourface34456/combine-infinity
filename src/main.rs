@@ -1,20 +1,20 @@
+#![warn(clippy::pedantic)]
 mod combo;
 mod combos;
 mod endpoint_funcs;
 mod fourm_data;
+mod json_body;
 mod props;
 mod utils;
-mod json_body;
 
 use combo::*;
 use combos::Combos;
 use endpoint_funcs::*;
 use fourm_data::*;
+use json_body::*;
 use props::*;
 use utils::*;
 use warp::*;
-use json_body::*;
-use Filter;
 
 #[tokio::main]
 async fn main() {

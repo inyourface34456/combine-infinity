@@ -14,12 +14,12 @@ pub async fn combine_hit(combos: Combos, to_combine: Combonation) -> Result<impl
 
     match result {
         Ok(res) => Ok(reply::html(res)),
-        Err(error) => {
-            match error {
-                Errors::VotingInProgress => Ok(reply::html("voting in progress, vote for what ou ant at /vote".into())),
-                Errors::InternelServerError => Err(reject())
-            }
-        }
+        Err(error) => match error {
+            Errors::VotingInProgress => Ok(reply::html(
+                "voting in progress, vote for what you ant at /vote".into(),
+            )),
+            Errors::InternelServerError => Err(reject()),
+        },
     }
 }
 
