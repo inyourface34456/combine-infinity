@@ -1,4 +1,3 @@
-#![warn(clippy::pedantic)]
 mod combo;
 mod combos;
 mod endpoint_funcs;
