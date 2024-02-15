@@ -25,7 +25,7 @@ impl Combos {
 
     pub fn combine(&self, combo: (String, String)) -> Result<String, Errors> {
         if let Ok(combos) = self.combos.read() {
-            for i in combos.clone().into_iter() {
+            for i in combos.clone() {
                 if i.matches(&combo) {
                     return Ok(i.get_result().clone());
                 }
@@ -40,7 +40,7 @@ impl Combos {
     pub fn clean(&self) {
         if let Ok(mut props) = self.props.write() {
             let mut to_remove = vec![];
-            for i in props.clone().into_iter() {
+            for i in props.clone() {
                 if let Some(prop) = i.finalize() {
                     if let Ok(mut combos) = self.combos.write() {
                         combos.push(prop);
@@ -58,7 +58,7 @@ impl Combos {
 
     pub fn vote(&self, combo: (String, String), result: String) -> String {
         if let Ok(mut props) = self.props.write() {
-            for mut i in props.clone().into_iter() {
+            for mut i in props.clone() {
                 if i.matches(&combo) {
                     i.vote_for(&result);
                     return result;
@@ -69,7 +69,7 @@ impl Combos {
             props.push(prop);
             result
         } else {
-            "".into()
+            String::new()
         }
     }
 }

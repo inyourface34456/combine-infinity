@@ -7,14 +7,14 @@ mod json_body;
 mod props;
 mod utils;
 
-use combo::*;
+use combo::Combo;
 use combos::Combos;
-use endpoint_funcs::*;
-use fourm_data::*;
-use json_body::*;
-use props::*;
-use utils::*;
-use warp::*;
+use endpoint_funcs::{clean_hit, combine_hit, index, vote_hit};
+use fourm_data::Vote;
+use json_body::json_arb_data;
+use props::Proposal;
+use utils::{Errors, Outer, VOTE_EXPIRE, get_unix_epoch};
+use warp::{Filter, any, get, path, post, serve};
 
 #[tokio::main]
 async fn main() {

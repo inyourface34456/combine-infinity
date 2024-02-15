@@ -24,9 +24,9 @@ impl Proposal {
 
     pub fn finalize(&self) -> Option<Combo> {
         if self.expire < get_unix_epoch() {
-            let mut max = (&"".into(), 0);
+            let mut max = (&String::new(), 0);
 
-            for i in self.result.iter() {
+            for i in &self.result {
                 if *i.1 > max.1 {
                     max = (i.0, *i.1);
                 }
