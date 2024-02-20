@@ -1,8 +1,10 @@
+use serde::Serialize;
+
 use crate::get_unix_epoch;
 use crate::{Combo, VOTE_EXPIRE};
 use std::collections::HashMap;
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub struct Proposal {
     combo: (String, String),
     result: HashMap<String, u32>,
@@ -19,7 +21,9 @@ impl Proposal {
     }
 
     pub fn matches(&self, combo: &(String, String)) -> bool {
-        &self.combo == combo
+        let combo_lr = &(combo.1.clone(), combo.0.clone());
+
+        &self.combo == combo || &self.combo == combo_lr
     }
 
     pub fn finalize(&self) -> Option<Combo> {
@@ -36,6 +40,18 @@ impl Proposal {
         } else {
             None
         }
+    }
+
+    pub fn finlize_unchecked(&self) -> Combo {
+        let mut max = (&String::new(), 0);
+
+        for i in &self.result {
+            if *i.1 > max.1 {
+                max = (i.0, *i.1);
+            }
+        }
+
+        Combo::new(self.combo.clone(), max.0.clone())
     }
 
     pub fn vote_for(&mut self, prop: &String) {

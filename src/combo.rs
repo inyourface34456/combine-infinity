@@ -1,7 +1,9 @@
-#[derive(Clone)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Combo {
     combo: (String, String),
-    result: String,
+    pub result: String,
 }
 
 impl Combo {

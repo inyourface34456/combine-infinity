@@ -6,6 +6,8 @@ mod json_body;
 mod props;
 mod utils;
 
+use std::fs;
+
 use combo::Combo;
 use combos::Combos;
 use endpoint_funcs::{clean_hit, combine_hit, index, vote_hit};
@@ -17,10 +19,21 @@ use warp::{Filter, any, get, path, post, serve};
 
 #[tokio::main]
 async fn main() {
-    let combos = Combos::new();
+    let combos: Combos;
+
+    if let Ok(file_data) = fs::metadata("data.json") {
+        if file_data.is_file() && file_data.len() != 0 {
+            combos = Combos::load("data.json".into());
+        } else {
+            combos = Combos::new();
+        }
+    } else {
+        combos = Combos::new();
+    }
+
     let combos_filter = any().map(move || combos.clone());
 
-    let index = get().and(path::end()).and_then(index);
+    let index = path!("main" / String).map(|path| index(path));
 
     let combine = post()
         .and(path("combine"))
@@ -44,5 +57,6 @@ async fn main() {
 
     let route = index.or(combine).or(vote).or(clean);
 
-    serve(route).run(([127, 0, 0, 1], 3030)).await;
+    serve(route).bind(([127, 0, 0, 1], 3030)).await
+
 }
