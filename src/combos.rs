@@ -25,7 +25,7 @@ impl Combos {
 
     pub fn combine(&self, combo: (&String, &String)) -> Result<String, Errors> {
         if let Ok(elements) = self.elements.read() {
-            if !(elements.contains(&combo.0) || elements.contains(&combo.1)) {
+            if !(elements.contains(combo.0) || elements.contains(combo.1)) {
                 return Err(Errors::ElementDoesNotExist);
             }
             if combo.0.len() > 64 || combo.1.len() > 64 {

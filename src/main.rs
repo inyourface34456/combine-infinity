@@ -60,7 +60,7 @@ async fn main() {
         let stream = BroadcastStream::new(rx2);
         let event_stream = stream.map(move |x| match x {
             Ok(x) => sse_counter(x),
-            Err(err) => sse_counter(format!("{}", err.to_string())),
+            Err(err) => sse_counter(format!("{}", err)),
         });
         // reply using server-sent events
         warp::sse::reply(event_stream)
