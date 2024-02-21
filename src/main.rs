@@ -1,21 +1,17 @@
-mod combo;
 mod combos;
 mod endpoint_funcs;
 mod fourm_data;
 mod json_body;
-mod props;
 mod utils;
 
-use combo::Combo;
 use combos::Combos;
 use endpoint_funcs::{clean_hit, combine_hit, index, sse_counter, vote_hit};
 use fourm_data::Vote;
 use futures_util::StreamExt;
 use json_body::json_arb_data;
-use props::Proposal;
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
-use utils::{get_unix_epoch, Errors, Outer, VOTE_EXPIRE};
+use utils::{Errors, Outer};
 use warp::{any, get, path, post, serve, Filter};
 
 #[tokio::main]

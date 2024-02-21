@@ -48,7 +48,9 @@ pub struct NewVote {
 }
 
 impl NewVote {
-    pub fn new(combo: (String, String), votes: HashMap<String, u32>) -> Self {
+    pub fn new(combo: (&str, &str), votes: HashMap<String, u32>) -> Self {
+        let combo = (combo.0.into(), combo.1.into());
+
         Self { combo, votes }
     }
 }

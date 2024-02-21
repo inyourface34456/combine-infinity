@@ -43,13 +43,15 @@ pub fn index(path: String) -> impl Reply {
 }
 
 pub async fn combine_hit(combos: Combos, to_combine: Combonation) -> Result<impl Reply, Rejection> {
-    let result = combos.combine(to_combine.to_tuple());
+    let combo = to_combine.to_tuple();
+
+    let result = combos.combine((&combo.0.to_string(), &combo.1.to_string()));
 
     match result {
-        Ok(res) => Ok(reply::html(res)),
+        Ok(res) => Ok(reply::html(res.clone())),
         Err(error) => match error {
             Errors::VotingInProgress => Ok(reply::html(
-                "voting in progress, vote for what you ant at /vote".into(),
+                "voting in progress, vote for what you want".into(),
             )),
             _ => Err(reject()),
         },
@@ -61,10 +63,11 @@ pub async fn vote_hit(
     combos: Combos,
     to_combine: Vote,
 ) -> Result<impl Reply, Rejection> {
-    let result = combos.vote(to_combine.to_tuple(), to_combine.result());
+    let tuple = to_combine.to_tuple();
+    let result = combos.vote(tuple.clone(), to_combine.result());
 
     let _ =
-        sender.send(serde_json::to_string(&NewVote::new(to_combine.to_tuple(), result.1)).unwrap());
+        sender.send(serde_json::to_string(&NewVote::new((&tuple.0, &tuple.1), result.1)).unwrap());
 
     Ok(reply::html(result.0))
 }

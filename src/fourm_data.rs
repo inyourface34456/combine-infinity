@@ -9,8 +9,8 @@ pub struct Combonation {
 // unsafe impl std::marker::Send for Combonation {}
 
 impl Combonation {
-    pub fn to_tuple(&self) -> (String, String) {
-        (self.left.clone(), self.right.clone())
+    pub fn to_tuple(&self) -> (&str, &str) {
+        (&self.left, &self.right)
     }
 }
 
