@@ -1,7 +1,6 @@
+use crate::utils::to_outer;
 use crate::{Combo, Errors, Outer, Proposal};
-use crate::utils::{SaveFormat, to_outer};
-use std::fs;
-use std::io::Write;
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Combos {
@@ -13,26 +12,24 @@ pub struct Combos {
 impl Combos {
     pub fn new() -> Self {
         Self {
-            elements: to_outer(vec!["earth".into(), "fire".into(), "air".into(), "water".into()]),
+            elements: to_outer(vec![
+                "earth".into(),
+                "fire".into(),
+                "air".into(),
+                "water".into(),
+            ]),
             combos: to_outer(vec![]),
             props: to_outer(vec![]),
         }
     }
 
-    pub fn load(path: String) -> Self {
-        let data = fs::read_to_string(&path).expect("could not read file");
-        let save_data: SaveFormat = serde_json::from_str(&data).expect("save data invalid");
-
-        Self {elements: to_outer(save_data.elements), combos: to_outer(save_data.combos), props: to_outer(vec![])}
-    }
-
     pub fn combine(&self, combo: (String, String)) -> Result<String, Errors> {
         if let Ok(elements) = self.elements.read() {
             if !(elements.contains(&combo.0) || elements.contains(&combo.1)) {
-                return Err(Errors::ElementDoesNotExist)
-            } 
+                return Err(Errors::ElementDoesNotExist);
+            }
             if &combo.0.len() > &64 || &combo.1.len() > &64 {
-                return Err(Errors::NameTooLarge)
+                return Err(Errors::NameTooLarge);
             }
         }
 
@@ -66,65 +63,30 @@ impl Combos {
         }
 
         if let Ok(mut combos) = self.combos.write() {
-            combos.dedup_by(|x, y| {x == y})
+            combos.dedup_by(|x, y| x == y)
         }
     }
 
-    pub fn vote(&self, combo: (String, String), result: String) -> String {
+    pub fn vote(&self, combo: (String, String), result: String) -> (String, HashMap<String, u32>) {
         let result = result.to_lowercase();
-        
+
         if let Ok(mut props) = self.props.write() {
+            // props.dedup();
+
             for mut i in props.clone() {
                 if i.matches(&combo) {
                     i.vote_for(&result);
-                    return result;
+                    return (result, i.get_options());
                 }
             }
             let combo = (combo.0.to_lowercase(), combo.1.to_lowercase());
 
             let mut prop = Proposal::new(combo);
             prop.vote_for(&result);
-            props.push(prop);
-            result
+            props.push(prop.clone());
+            (result, prop.get_options())
         } else {
-            String::new()
-        }
-    }
-
-    pub fn to_string(&self) -> String {
-        let mut output = SaveFormat::new();
-
-        if let Ok(elements) = self.elements.read() {
-            output.set_elements(&elements);
-        }
-
-        if let Ok(props) = self.props.read() {
-            if let Ok(mut combos) = self.combos.write() {
-                for i in props.iter() {
-                    combos.push(i.finlize_unchecked())
-                }
-            }
-        }
-
-        if let Ok(combos) = self.combos.read() {
-            output.set_combos(&combos)
-        }
-
-        serde_json::to_string(&output).unwrap()
-    }
-}
-
-impl Drop for Combos {
-    fn drop(&mut self) {
-        match fs::OpenOptions::new().write(true).truncate(true).open("data.json") {
-            Ok(mut file) => {
-                file.write_all(self.to_string().as_bytes()).expect("could not write to file")
-            },
-            Err(_) => {
-                fs::File::create("data.json").expect("could not create file");
-                let mut file = fs::OpenOptions::new().write(true).truncate(true).open("data.json").expect("could not open file");
-                file.write_all(self.to_string().as_bytes()).expect("could not write to file")
-            }
+            (String::new(), HashMap::new())
         }
     }
 }

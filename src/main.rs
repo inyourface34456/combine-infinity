@@ -6,34 +6,37 @@ mod json_body;
 mod props;
 mod utils;
 
-use std::fs;
-
 use combo::Combo;
 use combos::Combos;
-use endpoint_funcs::{clean_hit, combine_hit, index, vote_hit};
+use endpoint_funcs::{clean_hit, combine_hit, index, sse_counter, vote_hit};
 use fourm_data::Vote;
+use futures_util::StreamExt;
 use json_body::json_arb_data;
 use props::Proposal;
-use utils::{Errors, Outer, VOTE_EXPIRE, get_unix_epoch};
-use warp::{Filter, any, get, path, post, serve};
+use tokio::sync::broadcast;
+use tokio_stream::wrappers::BroadcastStream;
+use utils::{get_unix_epoch, Errors, Outer, VOTE_EXPIRE};
+use warp::{any, get, path, post, serve, Filter};
 
 #[tokio::main]
 async fn main() {
-    let combos: Combos;
+    let combos = Combos::new();
 
-    if let Ok(file_data) = fs::metadata("data.json") {
-        if file_data.is_file() && file_data.len() != 0 {
-            combos = Combos::load("data.json".into());
-        } else {
-            combos = Combos::new();
-        }
-    } else {
-        combos = Combos::new();
-    }
+    // if let Ok(file_data) = fs::metadata("data.json") {
+    //     if file_data.is_file() && file_data.len() != 0 {
+    //         combos = Combos::load("data.json".into());
+    //     } else {
+    //         combos = Combos::new();
+    //     }
+    // } else {
+    //     combos = Combos::new();
+    // }
 
     let combos_filter = any().map(move || combos.clone());
-
     let index = path!("main" / String).map(|path| index(path));
+
+    let (tx, _rx1) = broadcast::channel(16);
+    let tx_clone = tx.clone();
 
     let combine = post()
         .and(path("combine"))
@@ -45,6 +48,7 @@ async fn main() {
     let vote = post()
         .and(path("vote"))
         .and(path::end())
+        .map(move || tx_clone.clone())
         .and(combos_filter.clone())
         .and(json_arb_data())
         .and_then(vote_hit);
@@ -55,8 +59,19 @@ async fn main() {
         .and(combos_filter.clone())
         .and_then(clean_hit);
 
-    let route = index.or(combine).or(vote).or(clean);
+    let uptime = warp::path("uptime").and(warp::get()).map(move || {
+        let rx2 = tx.subscribe();
+        // create server event source
+        let stream = BroadcastStream::new(rx2);
+        let event_stream = stream.map(move |x| match x {
+            Ok(x) => sse_counter(x),
+            Err(err) => sse_counter(format!("{}", err.to_string())),
+        });
+        // reply using server-sent events
+        warp::sse::reply(event_stream)
+    });
+
+    let route = index.or(combine).or(vote).or(clean).or(uptime);
 
     serve(route).bind(([127, 0, 0, 1], 3030)).await
-
 }

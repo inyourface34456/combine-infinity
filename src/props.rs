@@ -4,7 +4,7 @@ use crate::get_unix_epoch;
 use crate::{Combo, VOTE_EXPIRE};
 use std::collections::HashMap;
 
-#[derive(Clone, PartialEq, Eq, Serialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Debug)]
 pub struct Proposal {
     combo: (String, String),
     result: HashMap<String, u32>,
@@ -31,35 +31,33 @@ impl Proposal {
             let mut max = (&String::new(), 0);
 
             for i in &self.result {
-                if *i.1 > max.1 {
+                if i.1 > &max.1 {
                     max = (i.0, *i.1);
                 }
             }
 
-            Some(Combo::new(self.combo.clone(), max.0.clone()))
+            Some(Combo::new(self.combo.clone(), max.0.to_string()))
         } else {
             None
         }
     }
-
-    pub fn finlize_unchecked(&self) -> Combo {
-        let mut max = (&String::new(), 0);
-
-        for i in &self.result {
-            if *i.1 > max.1 {
-                max = (i.0, *i.1);
-            }
-        }
-
-        Combo::new(self.combo.clone(), max.0.clone())
-    }
-
+    
     pub fn vote_for(&mut self, prop: &String) {
         match self.result.get_mut(prop) {
-            Some(dat) => *dat += 1,
+            Some(dat) => {
+                *dat += 1;
+                dbg!(&self);
+                //println!("incrmenting exsisting vote {} to value {}", prop, dat);
+            }
             None => {
-                self.result.insert(prop.clone(), 1);
+                let _result = self.result.insert(prop.clone(), 1);
+                dbg!(&self);
+                //println!("making new entry, name is {}, result is {:?}", prop, result);
             }
         };
+    }
+
+    pub fn get_options(&self) -> HashMap<String, u32> {
+        self.result.clone()
     }
 }
