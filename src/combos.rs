@@ -28,7 +28,7 @@ impl Combos {
             if !(elements.contains(&combo.0) || elements.contains(&combo.1)) {
                 return Err(Errors::ElementDoesNotExist);
             }
-            if &combo.0.len() > &64 || &combo.1.len() > &64 {
+            if combo.0.len() > 64 || combo.1.len() > 64 {
                 return Err(Errors::NameTooLarge);
             }
         }
@@ -36,7 +36,10 @@ impl Combos {
         if let Ok(combos) = self.combos.read() {
             match combos.get(&(combo.0.clone(), combo.1.clone())) {
                 Some(dat) => Ok(dat.clone()),
-                None => Err(Errors::VotingInProgress)
+                None => {
+                    self.vote((combo.0.clone(), combo.1.clone()), "".into());
+                    Err(Errors::VotingInProgress)
+                }
             }
             
         } else {

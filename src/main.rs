@@ -5,7 +5,7 @@ mod json_body;
 mod utils;
 
 use combos::Combos;
-use endpoint_funcs::{clean_hit, combine_hit, index, sse_counter, vote_hit};
+use endpoint_funcs::{clean_hit, combine_hit, sse_counter, vote_hit};
 use fourm_data::Vote;
 use futures_util::StreamExt;
 use json_body::json_arb_data;
@@ -29,7 +29,6 @@ async fn main() {
     // }
 
     let combos_filter = any().map(move || combos.clone());
-    let index = path!("main" / String).map(|path| index(path));
 
     let (tx, _rx1) = broadcast::channel(16);
     let tx_clone = tx.clone();
@@ -67,7 +66,7 @@ async fn main() {
         warp::sse::reply(event_stream)
     });
 
-    let route = index.or(combine).or(vote).or(clean).or(uptime);
+    let route = combine.or(vote).or(clean).or(uptime);
 
     serve(route).bind(([127, 0, 0, 1], 3030)).await
 }
